@@ -12,18 +12,30 @@ lookup = {
  4: 'RUSC',
  5: 'LAPS' }
 
+# Display:
+
+# If no tea is being brewed here, then just display 'tea?' or 'ohio' or some placeholder.
+# Once a button is pressed, tea starts brewing for three minutes. During this phase:
+# Scroll "(tea name) ready in MM:SS". Repeat the scroll every ten seconds.
+# If 'cancel' is pressed, display "Cancel" for two seconds, then go back to 'no tea' mode.
+# When the tea is ready, alternate "(tea name)  MMMm".
+# When tea has been ready for two hours, go back to 'no tea' mode.
+
+
 class State():
     def __init__(self):
-        self.current_tea = ''
+        self.current_tea_index = None
         self.time_brewing_started = None
-        self.scrolling_message = None
-        self.fixed_message = None
+        self.message = None
         self.brewing = False
         self.message_timeout = 0
+        self.scroll_position = 0
+
 def main(stdscr):
     # Clear screen
     s = State()
-
+    seq = 0
+    x = None
     stdscr.clear()
     stdscr.nodelay(1) # set getch() non-blocking
     tea = "TEA?"
@@ -35,32 +47,32 @@ def main(stdscr):
         v = stdscr.getch()
         if v != -1:
             if v >= ord('0') and v <= ord('9') and v-ord('0') in lookup:
-               tea = lookup[v-ord('0')]
-               s.scrolling_message = "{} ready in ".format(tea)
-               s.message_timeout = 0
+               s.current_tea_index = v-ord('0')
+               tea = lookup[s.current_tea_index]
+               s.message = "{} ready in 0300".format(tea)
+               s.message_timeout = 100
             if v == ord('9'):
                 # Cancel
-                s.fixed_message = "CANC"
-                s.message_timeout = 0
+                s.message = "CANC"
+                s.current_tea_index = None
+                s.message_timeout = 100
             x = v
 
-            stdscr.add_str(0,0,"Last keypress: {}".format(v))
-            stdscr.add_str(1,0,"Scrolling message: >{}<".format(s.scrolling_message))
-            stdscr.add_str(2,0,"Fixed message: >{}<".format(s.fixed_message))
         # Update curses display
+        stdscr.add_str(0,0,"Last keypress: {}".format(x))
+        stdscr.add_str(1,0,"Scrolling message: >{}<".format(s.message))
         stdscr.add_str(3,0,"Message timeout: {}".format(s.message_timeout))
 
         # Update four-letter display
         if s.message_timeout <= 0:
             flp.clear()
-            if s.scrolling_message:
-                flp.scroll_print(s.scrolling_message + "XXXX")
-                s.message_timeout = 100
-            elif s.fixed_message:
-                flp.print_str(s.fixed_message)
-                s.message_timeout = 100
+            if s.message:
+                flp.print_str(s.message[s.scroll_position:])
+                if seq % 5 == 0 and s.scroll_position < len(s.message)-4:
+                    s.scroll_position += 1
         else:
             s.message_timeout -= 1
+        seq += 1
         time.sleep(0.1)
         
 
