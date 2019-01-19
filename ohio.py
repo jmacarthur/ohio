@@ -16,7 +16,10 @@ class State():
     def __init__(self):
         self.current_tea = ''
         self.time_brewing_started = None
-
+        self.scrolling_message = None
+        self.fixed_message = None
+        self.brewing = False
+        self.message_timeout = 0
 def main(stdscr):
     # Clear screen
     s = State()
@@ -24,7 +27,6 @@ def main(stdscr):
     stdscr.clear()
     stdscr.nodelay(1) # set getch() non-blocking
     tea = "TEA?"
-    seq = 0
     quit = False
     flp.clear()
     flp.print_number_str('OHIO')
@@ -34,11 +36,26 @@ def main(stdscr):
         if v != -1:
             if v >= ord('0') and v <= ord('9') and v-ord('0') in lookup:
                tea = lookup[v-ord('0')]
-               flp.clear()
-               flp.scroll_print("Brewing {}".format(tea))
-               flp.show()
+               s.scrolling_message = "{} ready in ".format(tea)
+               s.message_timeout = 0
+            if v == ord('9'):
+                # Cancel
+                s.fixed_message = "CANC"
+                s.message_timeout = 0
             x = v
-        seq += 1
+
+        # Update display
+        if s.scrolling_timeout <= 0:
+            flp.clear()
+            if s.scrolling_message:
+                flp.scroll_print(s.scrolling_message + "XXXX")
+                s.message_timeout = 100
+            elif s.fixed_message:
+                flp.print_str(s.fixed_message)
+                s.message_timeout = 100
+        else:
+            s.scrolling_timeout -= 1
         time.sleep(0.1)
+        
 
 wrapper(main)
