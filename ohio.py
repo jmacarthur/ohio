@@ -59,9 +59,9 @@ def main(stdscr):
             x = v
 
         # Update curses display
-        stdscr.add_str(0,0,"Last keypress: {}".format(x))
-        stdscr.add_str(1,0,"Scrolling message: >{}<".format(s.message))
-        stdscr.add_str(3,0,"Message timeout: {}".format(s.message_timeout))
+        stdscr.addstr(0,0,"Last keypress: {}".format(x))
+        stdscr.addstr(1,0,"Scrolling message: >{}<".format(s.message))
+        stdscr.addstr(3,0,"Message timeout: {}".format(s.message_timeout))
 
         # Update four-letter display
         if s.message_timeout <= 0:
