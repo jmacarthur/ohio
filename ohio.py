@@ -44,8 +44,14 @@ def main(stdscr):
                 s.message_timeout = 0
             x = v
 
-        # Update display
-        if s.scrolling_timeout <= 0:
+            stdscr.add_str(0,0,"Last keypress: {}".format(v))
+            stdscr.add_str(1,0,"Scrolling message: >{}<".format(s.scrolling_message))
+            stdscr.add_str(2,0,"Fixed message: >{}<".format(s.fixed_message))
+        # Update curses display
+        stdscr.add_str(3,0,"Message timeout: {}".format(s.message_timeout))
+
+        # Update four-letter display
+        if s.message_timeout <= 0:
             flp.clear()
             if s.scrolling_message:
                 flp.scroll_print(s.scrolling_message + "XXXX")
@@ -54,7 +60,7 @@ def main(stdscr):
                 flp.print_str(s.fixed_message)
                 s.message_timeout = 100
         else:
-            s.scrolling_timeout -= 1
+            s.message_timeout -= 1
         time.sleep(0.1)
         
 
